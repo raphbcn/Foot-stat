@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FootStats - App Dimanche</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e0e7ff;
+            color: #667eea;
+        }
+
+        .btn-danger {
+            background: #fee;
+            color: #c33;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e7ff;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .player-card {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-card h3 {
+            color: #333;
+            font-size: 16px;
+        }
+
+        .player-card p {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-box .label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .checkbox-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-item {
+            background: #f8f9ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .rating-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .rating-input input {
+            width: 80px;
+            text-align: center;
+        }
+
+        .match-card {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .match-card:hover {
+            background: #e0e7ff;
+        }
+
+        .match-date {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .match-score {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .back-btn:hover {
+            text-decoration: underline;
+        }
+
+        .admin-badge {
+            background: #ffd700;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .evaluation-card {
+            background: white;
+            border: 2px solid #e0e7ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .evaluation-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e7ff;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚽ FootStats</h1>
+            <p>Ton app pour les matchs du dimanche</p>
+        </div>
+
+        <div class="content">
+            <!-- Écran de connexion -->
+            <div id="loginScreen" class="screen active">
+                <h2 style="margin-bottom: 20px; color: #333;">Connexion</h2>
+                <div class="input-group">
+                    <label>Nom du joueur</label>
+                    <select id="loginSelect">
+                        <option value="">-- Choisir un joueur --</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="login()">Se connecter</button>
+                <button class="btn btn-secondary" onclick="showScreen('adminSetup')">Configuration Admin</button>
+            </div>
+
+            <!-- Configuration Admin -->
+            <div id="adminSetup" class="screen">
+                <button class="back-btn" onclick="showScreen('loginScreen')">← Retour</button>
+                <h2 style="margin-bottom: 20px; color: #333;">Configuration Admin</h2>
+                <div class="input-group">
+                    <label>Nom de l'admin</label>
+                    <input type="text" id="adminName" placeholder="Ton nom">
+                </div>
+                <div class="input-group">
+                    <label>Ajouter des joueurs (un par ligne)</label>
+                    <textarea id="playersList" rows="10" style="width: 100%; padding: 12px; border: 2px solid #e0e7ff; border-radius: 10px; font-size: 16px; font-family: inherit;" placeholder="Joueur 1&#10;Joueur 2&#10;Joueur 3&#10;..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="setupAdmin()">Enregistrer et commencer</button>
+            </div>
+
+            <!-- Menu Admin -->
+            <div id="adminMenu" class="screen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="color: #333;">Menu Admin</h2>
+                    <span class="admin-badge">ADMIN</span>
+                </div>
+                <button class="btn btn-primary" onclick="showScreen('createMatch')">➕ Créer un nouveau match</button>
+                <button class="btn btn-secondary" onclick="showScreen('adminStats')">📊 Voir toutes les stats</button>
+                <button class="btn btn-secondary" onclick="showScreen('matchHistory')">📋 Historique des matchs</button>
+                <button class="btn btn-danger" onclick="logout()">Déconnexion</button>
+            </div>
+
+            <!-- Création de match -->
+            <div id="createMatch" class="screen">
+                <button class="back-btn" onclick="showScreen('adminMenu')">← Retour</button>
+                <h2 style="margin-bottom: 20px; color: #333;">Nouveau match</h2>
+                <div class="input-group">
+                    <label>Date du match</label>
+                    <input type="date" id="matchDate">
+                </div>
+                <div class="input-group">
+                    <label>Sélectionner 10 joueurs</label>
+                    <div class="checkbox-list" id="playerCheckboxes"></div>
+                </div>
+                <div class="input-group">
+                    <label>Équipe gagnante</label>
+                    <select id="winningTeam">
+                        <option value="tie">Match nul</option>
+                        <option value="team1">Équipe 1</option>
+                        <option value="team2">Équipe 2</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="createMatch()">Créer le match</button>
+            </div>
+
+            <!-- Menu Joueur -->
+            <div id="playerMenu" class="screen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="color: #333;" id="playerName"></h2>
+                </div>
+                <div class="stats-grid" id="playerStatsGrid"></div>
+                <button class="btn btn-primary" onclick="showScreen('evaluateMatch')">⭐ Évaluer un match</button>
+                <button class="btn btn-secondary" onclick="showScreen('playerHistory')">📊 Mon historique</button>
+                <button class="btn btn-danger" onclick="logout()">Déconnexion</button>
+            </div>
+
+            <!-- Évaluation de match -->
+            <div id="evaluateMatch" class="screen">
+                <button class="back-btn" onclick="showScreen('playerMenu')">← Retour</button>
+                <h2 style="margin-bottom: 20px; color: #333;">Évaluer un match</h2>
+                <div class="input-group">
+                    <label>Sélectionner un match</label>
+                    <select id="matchToEvaluate" onchange="loadPlayersToEvaluate()">
+                        <option value="">-- Choisir un match --</option>
+                    </select>
+                </div>
+                <div id="evaluationForm"></div>
+                <button class="btn btn-primary" onclick="submitEvaluations()" style="display: none;" id="submitEvalBtn">Envoyer les évaluations</button>
+            </div>
+
+            <!-- Stats Admin -->
+            <div id="adminStats" class="screen">
+                <button class="back-btn" onclick="showScreen('adminMenu')">← Retour</button>
+                <h2 style="margin-bottom: 20px; color: #333;">Statistiques globales</h2>
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="showStatsTab('players')">Joueurs</button>
+                    <button class="tab-btn" onclick="showStatsTab('evaluations')">Évaluations</button>
+                </div>
+                <div id="statsPlayersTab"></div>
+                <div id="statsEvaluationsTab" style="display: none;"></div>
+            </div>
+
+            <!-- Historique matchs -->
+            <div id="matchHistory" class="screen">
+                <button class="back-btn" onclick="showScreen('adminMenu')">← Retour</button>
+                <h2 style="margin-bottom: 20px; color: #333;">Historique des matchs</h2>
+                <div id="matchHistoryList"></div>
+            </div>
+
+            <!-- Historique joueur -->
+            <div id="playerHistory" class="screen">
+                <button class="back-btn" onclick="showScreen('playerMenu')">← Retour</button>
+                <h2 style="margin-bottom: 20px; color: #333;">Mon historique</h2>
+                <div id="playerHistoryList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Données de l'application (stockées en localStorage)
+        let appData = {
+            admin: null,
+            players: [],
+            matches: [],
+            evaluations: [],
+            currentUser: null
+        };
+
+        // Initialisation
+        function init() {
+            loadData();
+            if (appData.admin) {
+                populateLoginSelect();
+            }
+            if (appData.currentUser) {
+                if (appData.currentUser === appData.admin) {
+                    showScreen('adminMenu');
+                } else {
+                    showScreen('playerMenu');
+                    updatePlayerMenu();
+                }
+            }
+        }
+
+        // Charger les données
+        function loadData() {
+            const saved = localStorage.getItem('footstats');
+            if (saved) {
+                appData = JSON.parse(saved);
+            }
+        }
+
+        // Sauvegarder les données
+        function saveData() {
+            localStorage.setItem('footstats', JSON.stringify(appData));
+        }
+
+        // Afficher un écran
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Configuration admin
+        function setupAdmin() {
+            const adminName = document.getElementById('adminName').value.trim();
+            const playersText = document.getElementById('playersList').value.trim();
+            
+            if (!adminName) {
+                alert('Entre ton nom d\'admin');
+                return;
+            }
+            
+            if (!playersText) {
+                alert('Ajoute au moins un joueur');
+                return;
+            }
+            
+            const players = playersText.split('\n').map(p => p.trim()).filter(p => p);
+            
+            if (players.length < 10) {
+                alert('Il faut au moins 10 joueurs pour faire un match');
+                return;
+            }
+            
+            appData.admin = adminName;
+            appData.players = players.map(name => ({
+                name: name,
+                matchesPlayed: 0,
+                wins: 0,
+                losses: 0,
+                averageRating: 0,
+                totalRatings: 0,
+                ratingsCount: 0
+            }));
+            
+            saveData();
+            populateLoginSelect();
+            showScreen('loginScreen');
+            alert('Configuration enregistrée ! Tu peux maintenant te connecter');
+        }
+
+        // Peupler la liste de connexion
+        function populateLoginSelect() {
+            const select = document.getElementById('loginSelect');
+            select.innerHTML = '<option value="">-- Choisir un joueur --</option>';
+            
+            if (appData.admin) {
+                select.innerHTML += `<option value="${appData.admin}">${appData.admin} (Admin)</option>`;
+            }
+            
+            appData.players.forEach(player => {
+                select.innerHTML += `<option value="${player.name}">${player.name}</option>`;
+            });
+        }
+
+        // Connexion
+        function login() {
+            const selected = document.getElementById('loginSelect').value;
+            if (!selected) {
+                alert('Choisis un joueur');
+                return;
+            }
+            
+            appData.currentUser = selected;
+            saveData();
+            
+            if (selected === appData.admin) {
+                showScreen('adminMenu');
+            } else {
+                showScreen('playerMenu');
+                updatePlayerMenu();
+            }
+        }
+
+        // Déconnexion
+        function logout() {
+            appData.currentUser = null;
+            saveData();
+            showScreen('loginScreen');
+        }
+
+        // Mettre à jour le menu joueur
+        function updatePlayerMenu() {
+            const player = appData.players.find(p => p.name === appData.currentUser);
+            if (!player) return;
+            
+            document.getElementById('playerName').textContent = player.name;
+            
+            const winRate = player.matchesPlayed > 0 ? ((player.wins / player.matchesPlayed) * 100).toFixed(0) : 0;
+            
+            document.getElementById('playerStatsGrid').innerHTML = `
+                <div class="stat-box">
+                    <div class="value">${player.matchesPlayed}</div>
+                    <div class="label">Matchs joués</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">${player.wins}</div>
+                    <div class="label">Victoires</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">${player.losses}</div>
+                    <div class="label">Défaites</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">${player.averageRating.toFixed(1)}/10</div>
+                    <div class="label">Note moyenne</div>
+                </div>
+            `;
+        }
+
+        // Créer un match
+        function createMatch() {
+            const date = document.getElementById('matchDate').value;
+            const checkboxes = document.querySelectorAll('#playerCheckboxes input:checked');
+            const winningTeam = document.getElementById('winningTeam').value;
+            
+            if (!date) {
+                alert('Choisis une date');
+                return;
+            }
+            
+            if (checkboxes.length !== 10) {
+                alert('Sélectionne exactement 10 joueurs');
+                return;
+            }
+            
+            const selectedPlayers = Array.from(checkboxes).map(cb => cb.value);
+            
+            const match = {
+                id: Date.now(),
+                date: date,
+                players: selectedPlayers,
+                winningTeam: winningTeam,
+                team1: selectedPlayers.slice(0, 5),
+                team2: selectedPlayers.slice(5, 10)
+            };
+            
+            appData.matches.push(match);
+            
+            // Mettre à jour les stats
+            selectedPlayers.forEach(playerName => {
+                const player = appData.players.find(p => p.name === playerName);
+                if (player) {
+                    player.matchesPlayed++;
+                    
+                    if (winningTeam === 'team1' && match.team1.includes(playerName)) {
+                        player.wins++;
+                    } else if (winningTeam === 'team2' && match.team2.includes(playerName)) {
+                        player.wins++;
+                    } else if (winningTeam !== 'tie') {
+                        player.losses++;
+                    }
+                }
+            });
+            
+            saveData();
+            alert('Match créé !');
+            showScreen('adminMenu');
+        }
+
+        // Charger les joueurs pour création de match
+        function loadPlayersForMatch() {
+            const container = document.getElementById('playerCheckboxes');
+            container.innerHTML = '';
+            
+            appData.players.forEach(player => {
+                container.innerHTML += `
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="player_${player.name}" value="${player.name}">
+                        <label for="player_${player.name}">${player.name}</label>
+                    </div>
+                `;
+            });
+        }
+
+        // Préparer l'écran de création de match
+        document.addEventListener('DOMContentLoaded', () => {
+            const createMatchScreen = document.getElementById('createMatch');
+            const originalShowScreen = showScreen;
+            
+            window.showScreen = function(screenId) {
+                if (screenId === 'createMatch') {
+                    loadPlayersForMatch();
+                    document.getElementById('matchDate').valueAsDate = new Date();
+                } else if (screenId === 'evaluateMatch') {
+                    loadMatchesToEvaluate();
+                } else if (screenId === 'adminStats') {
+                    loadAdminStats();
+                } else if (screenId === 'matchHistory') {
+                    loadMatchHistory();
+                } else if (screenId === 'playerHistory') {
+                    loadPlayerHistory();
+                }
+                originalShowScreen(screenId);
+            };
+        });
+
+        // Charger les matchs à évaluer
+        function loadMatchesToEvaluate() {
+            const select = document.getElementById('matchToEvaluate');
+            select.innerHTML = '<option value="">-- Choisir un match --</option>';
+            
+            const playerMatches = appData.matches.filter(m => m.players.includes(appData.currentUser));
+            
+            playerMatches.forEach(match => {
+                const hasEvaluated = appData.evaluations.some(e => 
+                    e.matchId === match.id && e.evaluatorName === appData.currentUser
+                );
+                
+                const status = hasEvaluated ? '✓' : '○';
+                select.innerHTML += `<option value="${match.id}">${status} Match du ${match.date}</option>`;
+            });
+        }
+
+        // Charger les joueurs à évaluer
+        function loadPlayersToEvaluate() {
+            const matchId = parseInt(document.getElementById('matchToEvaluate').value);
+            const form = document.getElementById('evaluationForm');
+            const submitBtn = document.getElementById('submitEvalBtn');
+            
+            if (!matchId) {
+                form.innerHTML = '';
+                submitBtn.style.display = 'none';
+                return;
+            }
+            
+            const match = appData.matches.find(m => m.id === matchId);
+            const otherPlayers = match.players.filter(p => p !== appData.currentUser);
+            
+            form.innerHTML = '<h3 style="margin-bottom: 15px; color: #333;">Note tes coéquipiers (sur 10)</h3>';
+            
+            otherPlayers.forEach(playerName => {
+                form.innerHTML += `
+                    <div class="rating-input">
+                        <label style="flex: 1;">${playerName}</label>
+                        <input type="number" min="0" max="10" step="0.5" id="rating_${playerName}" placeholder="0-10">
+                    </div>
+                `;
+            });
+            
+            submitBtn.style.display = 'block';
+        }
+
+        // Soumettre les évaluations
+        function submitEvaluations() {
+            const matchId = parseInt(document.getElementById('matchToEvaluate').value);
+            const match = appData.matches.find(m => m.id === matchId);
+            const otherPlayers = match.players.filter(p => p !== appData.currentUser);
+            
+            let allFilled = true;
+            const ratings = {};
+            
+            otherPlayers.forEach(playerName => {
+                const input = document.getElementById(`rating_${playerName}`);
+                const value = parseFloat(input.value);
+                
+                if (isNaN(value) || value < 0 || value > 10) {
+                    allFilled = false;
+                } else {
+                    ratings[playerName] = value;
+                }
+            });
+            
+            if (!allFilled) {
+                alert('Remplis toutes les notes entre 0 et 10');
+                return;
+            }
+            
+            // Enregistrer les évaluations
+            const evaluation = {
+                matchId: matchId,
+                evaluatorName: appData.currentUser,
+                ratings: ratings,
+                date: new Date().toISOString()
+            };
+            
+            // Supprimer l'ancienne évaluation si elle existe
+            appData.evaluations = appData.evaluations.filter(e => 
+                !(e.matchId === matchId && e.evaluatorName === appData.currentUser)
+            );
+            
+            appData.evaluations.push(evaluation);
+            
+            // Mettre à jour les moyennes
+            Object.keys(ratings).forEach(playerName => {
+                const player = appData.players.find(p => p.name === playerName);
+                if (player) {
+                    player.totalRatings += ratings[playerName];
+                    player.ratingsCount++;
+                    player.averageRating = player.totalRatings / player.ratingsCount;
+                }
+            });
+            
+            saveData();
+            alert('Évaluations enregistrées !');
+            showScreen('playerMenu');
+            updatePlayerMenu();
+        }
+
+        // Charger les stats admin
+        function loadAdminStats() {
+            showStatsTab('players');
+        }
+
+        // Afficher un onglet de stats
+        function showStatsTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (tab === 'players') {
+                document.getElementById('statsPlayersTab').style.display = 'block';
+                document.getElementById('statsEvaluationsTab').style.display = 'none';
+                loadPlayersStats();
+            } else {
+                document.getElementById('statsPlayersTab').style.display = 'none';
+                document.getElementById('statsEvaluationsTab').style.display = 'block';
+                loadEvaluationsStats();
+            }
+        }
+
+        // Charger les stats des joueurs
+        function loadPlayersStats() {
+            const container = document.getElementById('statsPlayersTab');
+            const sortedPlayers = [...appData.players].sort((a, b) => b.averageRating - a.averageRating);
+            
+            container.innerHTML = '';
+            
+            sortedPlayers.forEach(player => {
+                const winRate = player.matchesPlayed > 0 ? ((player.wins / player.matchesPlayed) * 100).toFixed(0) : 0;
+                
+                container.innerHTML += `
+                    <div class="player-card">
+                        <div>
+                            <h3>${player.name}</h3>
+                            <p>Matchs: ${player.matchesPlayed} | V: ${player.wins} | D: ${player.losses} (${winRate}%)</p>
+                            <p>Note moyenne: ${player.averageRating.toFixed(1)}/10 (${player.ratingsCount} éval.)</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Charger les évaluations détaillées (admin uniquement)
+        function loadEvaluationsStats() {
+            const container = document.getElementById('statsEvaluationsTab');
+            container.innerHTML = '';
+            
+            appData.matches.forEach(match => {
+                const matchEvals = appData.evaluations.filter(e => e.matchId === match.id);
+                
+                if (matchEvals.length === 0) return;
+                
+                container.innerHTML += `
+                    <div class="evaluation-card">
+                        <h4>Match du ${match.date}</h4>
+                        ${matchEvals.map(eval => {
+                            const ratingsText = Object.entries(eval.ratings)
+                                .map(([player, rating]) => `${player}: ${rating}/10`)
+                                .join(', ');
+                            return `<p><strong>${eval.evaluatorName}:</strong> ${ratingsText}</p>`;
+                        }).join('')}
+                    </div>
+                `;
+            });
+            
+            if (appData.evaluations.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Aucune évaluation pour le moment</p>';
+            }
+        }
+
+        // Charger l'historique des matchs
+        function loadMatchHistory() {
+            const container = document.getElementById('matchHistoryList');
+            const sortedMatches = [...appData.matches].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            container.innerHTML = '';
+            
+            sortedMatches.forEach(match => {
+                const result = match.winningTeam === 'tie' ? 'Match nul' : 
+                              match.winningTeam === 'team1' ? 'Équipe 1 gagne' : 'Équipe 2 gagne';
+                
+                container.innerHTML += `
+                    <div class="match-card">
+                        <div class="match-date">${match.date}</div>
+                        <div class="match-score">${result}</div>
+                        <p style="font-size: 14px; color: #666; margin-top: 5px;">
+                            Équipe 1: ${match.team1.join(', ')}<br>
+                            Équipe 2: ${match.team2.join(', ')}
+                        </p>
+                    </div>
+                `;
+            });
+            
+            if (appData.matches.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Aucun match pour le moment</p>';
+            }
+        }
+
+        // Charger l'historique du joueur
+        function loadPlayerHistory() {
+            const container = document.getElementById('playerHistoryList');
+            const playerMatches = appData.matches.filter(m => m.players.includes(appData.currentUser));
+            const sortedMatches = [...playerMatches].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            container.innerHTML = '';
+            
+            sortedMatches.forEach(match => {
+                const isTeam1 = match.team1.includes(appData.currentUser);
+                const won = (match.winningTeam === 'team1' && isTeam1) || 
+                           (match.winningTeam === 'team2' && !isTeam1);
+                const result = match.winningTeam === 'tie' ? '🤝 Nul' : 
+                              won ? '✅ Victoire' : '❌ Défaite';
+                
+                // Récupérer la note moyenne reçue pour ce match
+                const matchEvals = appData.evaluations.filter(e => 
+                    e.matchId === match.id && e.ratings[appData.currentUser]
+                );
+                const avgRating = matchEvals.length > 0 ? 
+                    (matchEvals.reduce((sum, e) => sum + e.ratings[appData.currentUser], 0) / matchEvals.length).toFixed(1) : 
+                    'N/A';
+                
+                container.innerHTML += `
+                    <div class="match-card">
+                        <div class="match-date">${match.date}</div>
+                        <div class="match-score">${result}</div>
+                        <p style="font-size: 14px; color: #666; margin-top: 5px;">
+                            Note reçue: ${avgRating}/10 (${matchEvals.length} éval.)
+                        </p>
+                    </div>
+                `;
+            });
+            
+            if (playerMatches.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Tu n\'as pas encore joué de match</p>';
+            }
+        }
+
+        // Initialiser l'app au chargement
+        init();
+    </script>
+</body>
+</html>
