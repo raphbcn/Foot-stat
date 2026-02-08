@@ -285,6 +285,24 @@
             background: #667eea;
             color: white;
         }
+
+        .star-badge {
+            color: #ffd700;
+            font-size: 18px;
+            margin-left: 5px;
+        }
+
+        .star-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #333;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -442,6 +460,10 @@
             const saved = localStorage.getItem('footstats');
             if (saved) {
                 appData = JSON.parse(saved);
+                // Migration : ajouter le champ stars si absent
+                appData.players.forEach(p => {
+                    if (p.stars === undefined) p.stars = 0;
+                });
             }
         }
 
@@ -486,7 +508,8 @@
                 losses: 0,
                 averageRating: 0,
                 totalRatings: 0,
-                ratingsCount: 0
+                ratingsCount: 0,
+                stars: 0
             }));
             
             saveData();
@@ -560,6 +583,10 @@
                 <div class="stat-box">
                     <div class="value">${player.averageRating.toFixed(1)}/10</div>
                     <div class="label">Note moyenne</div>
+                </div>
+                <div class="stat-box" style="grid-column: span 2;">
+                    <div class="value">⭐ ${player.stars || 0}</div>
+                    <div class="label">Homme du match</div>
                 </div>
             `;
         }
@@ -747,10 +774,52 @@
                 }
             });
             
+            // Recalculer les étoiles pour ce match
+            updateMatchStars(matchId);
+
             saveData();
             alert('Évaluations enregistrées !');
             showScreen('playerMenu');
             updatePlayerMenu();
+        }
+
+        // Calculer et attribuer l'étoile à l'homme du match
+        function updateMatchStars(matchId) {
+            // Réinitialiser toutes les étoiles et recalculer
+            appData.players.forEach(p => p.stars = 0);
+
+            appData.matches.forEach(match => {
+                const matchEvals = appData.evaluations.filter(e => e.matchId === match.id);
+                if (matchEvals.length === 0) return;
+
+                // Calculer la note moyenne de chaque joueur pour ce match
+                const playerAvgs = {};
+                match.players.forEach(playerName => {
+                    const ratings = matchEvals
+                        .filter(e => e.ratings[playerName] !== undefined)
+                        .map(e => e.ratings[playerName]);
+                    if (ratings.length > 0) {
+                        playerAvgs[playerName] = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+                    }
+                });
+
+                // Trouver le joueur avec la meilleure note
+                let bestPlayer = null;
+                let bestRating = -1;
+                Object.entries(playerAvgs).forEach(([name, avg]) => {
+                    if (avg > bestRating) {
+                        bestRating = avg;
+                        bestPlayer = name;
+                    }
+                });
+
+                if (bestPlayer) {
+                    const player = appData.players.find(p => p.name === bestPlayer);
+                    if (player) {
+                        player.stars++;
+                    }
+                }
+            });
         }
 
         // Charger les stats admin
@@ -784,10 +853,12 @@
             sortedPlayers.forEach(player => {
                 const winRate = player.matchesPlayed > 0 ? ((player.wins / player.matchesPlayed) * 100).toFixed(0) : 0;
                 
+                const starDisplay = (player.stars || 0) > 0 ? `<span class="star-count">⭐ ${player.stars}</span>` : '';
+
                 container.innerHTML += `
                     <div class="player-card">
                         <div>
-                            <h3>${player.name}</h3>
+                            <h3>${player.name} ${starDisplay}</h3>
                             <p>Matchs: ${player.matchesPlayed} | V: ${player.wins} | D: ${player.losses} (${winRate}%)</p>
                             <p>Note moyenne: ${player.averageRating.toFixed(1)}/10 (${player.ratingsCount} éval.)</p>
                         </div>
@@ -832,9 +903,35 @@
             container.innerHTML = '';
             
             sortedMatches.forEach(match => {
-                const result = match.winningTeam === 'tie' ? 'Match nul' : 
+                const result = match.winningTeam === 'tie' ? 'Match nul' :
                               match.winningTeam === 'team1' ? 'Équipe 1 gagne' : 'Équipe 2 gagne';
-                
+
+                // Trouver l'homme du match
+                const matchEvals = appData.evaluations.filter(e => e.matchId === match.id);
+                let motmDisplay = '';
+                if (matchEvals.length > 0) {
+                    const playerAvgs = {};
+                    match.players.forEach(playerName => {
+                        const ratings = matchEvals
+                            .filter(e => e.ratings[playerName] !== undefined)
+                            .map(e => e.ratings[playerName]);
+                        if (ratings.length > 0) {
+                            playerAvgs[playerName] = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+                        }
+                    });
+                    let bestPlayer = null;
+                    let bestRating = -1;
+                    Object.entries(playerAvgs).forEach(([name, avg]) => {
+                        if (avg > bestRating) {
+                            bestRating = avg;
+                            bestPlayer = name;
+                        }
+                    });
+                    if (bestPlayer) {
+                        motmDisplay = `<p style="font-size: 14px; margin-top: 5px;">⭐ <strong>Homme du match:</strong> ${bestPlayer} (${bestRating.toFixed(1)}/10)</p>`;
+                    }
+                }
+
                 container.innerHTML += `
                     <div class="match-card">
                         <div class="match-date">${match.date}</div>
@@ -843,6 +940,7 @@
                             Équipe 1: ${match.team1.join(', ')}<br>
                             Équipe 2: ${match.team2.join(', ')}
                         </p>
+                        ${motmDisplay}
                     </div>
                 `;
             });
